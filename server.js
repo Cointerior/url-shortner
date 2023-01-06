@@ -11,16 +11,27 @@ app.set("view engine", "ejs")
 
 connectDB()
 
+app.use(express.json())
+app.use(express.urlencoded({ extended: false }))
+
 app.get("/", async (req, res) => {
     const shortUrls = await ShortUrl.find()
     res.render("index", { shortUrls: shortUrls})
 })
 
-app.get("/shortUrls", async (req, res) => {
+app.post("/shortUrls", async (req, res) => {
     const { fullUrl } = req.body
     await ShortUrl.create({ full: fullUrl })
 
     res.redirect("/")
+})
+
+app.get("/:shortUrl", async (req, res) => {
+    const shortUrl = await ShortUrl.findOne({ short: req.params.shortUrl })
+    if (shortUrl == null) return res.sendStatus(404)
+    shortUrl.save()
+
+    res.redirect(shortUrl.full)
 })
 
 
